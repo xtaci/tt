@@ -78,9 +78,10 @@ func hCenter(s string) string {
 	return "║ " + strings.Repeat(" ", left) + s + strings.Repeat(" ", right) + " ║"
 }
 
-// vLen returns visible length (ignoring ANSI escapes).
+// vLen returns the visible display width of s in terminal columns,
+// correctly handling ANSI escape sequences and East Asian wide characters.
 func vLen(s string) int {
-	n, esc := 0, false
+	w, esc := 0, false
 	for _, r := range s {
 		if r == '\033' {
 			esc = true
@@ -92,9 +93,47 @@ func vLen(s string) int {
 			}
 			continue
 		}
-		n++
+		w += runeWidth(r)
 	}
-	return n
+	return w
+}
+
+// runeWidth returns the display column width of a rune in a terminal.
+func runeWidth(r rune) int {
+	if isWide(r) {
+		return 2
+	}
+	return 1
+}
+
+// isWide reports whether r is an East Asian wide character
+// that occupies 2 columns in a terminal.
+func isWide(r rune) bool {
+	switch {
+	case r >= 0x1100 && r <= 0x115F: // Hangul Jamo
+		return true
+	case r >= 0x2E80 && r <= 0x303E: // CJK Radicals, Kangxi, Symbols
+		return true
+	case r >= 0x3041 && r <= 0x33BF: // Hiragana, Katakana, Bopomofo, Compat
+		return true
+	case r >= 0x3400 && r <= 0x4DBF: // CJK Extension A
+		return true
+	case r >= 0x4E00 && r <= 0xA4CF: // CJK Unified Ideographs, Yi
+		return true
+	case r >= 0xAC00 && r <= 0xD7AF: // Hangul Syllables
+		return true
+	case r >= 0xF900 && r <= 0xFAFF: // CJK Compatibility Ideographs
+		return true
+	case r >= 0xFE30 && r <= 0xFE6F: // CJK Compatibility Forms
+		return true
+	case r >= 0xFF01 && r <= 0xFF60: // Fullwidth Forms
+		return true
+	case r >= 0xFFE0 && r <= 0xFFE6: // Fullwidth Signs
+		return true
+	case r >= 0x20000 && r <= 0x2FA1F: // CJK Extension B+ & Compat Suppl
+		return true
+	}
+	return false
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -336,9 +375,9 @@ func renderMenu(sel int) {
 	var b strings.Builder
 	b.WriteString(hTop() + "\n")
 	b.WriteString(hBlank() + "\n")
-	b.WriteString(hCenter(BOLD+FgCyn+"╔╦╗╔╦╗  打 字 练 习"+RST) + "\n")
+	b.WriteString(hCenter(BOLD+FgCyn+"╔╦╗╔╦╗  打 字 练 习 "+RST) + "\n")
 	b.WriteString(hCenter(BOLD+FgCyn+" ║  ║   Typing Tutor"+RST) + "\n")
-	b.WriteString(hCenter(BOLD+FgCyn+" ╩  ╩   Go 复刻版"+RST) + "\n")
+	b.WriteString(hCenter(BOLD+FgCyn+" ╩  ╩   Go 复刻版   "+RST) + "\n")
 	b.WriteString(hBlank() + "\n")
 	b.WriteString(hCenter(FgGry+"经典 DOS TT 风格 · 终端打字练习程序"+RST) + "\n")
 	b.WriteString(hMid() + "\n")
