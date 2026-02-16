@@ -147,7 +147,7 @@ type Lesson struct {
 
 var lessons = []Lesson{
 	{
-		Name: "Lesson 1 — 主键区 Home Row",
+		Name: "Lesson 1 — Home Row",
 		Lines: []string{
 			"asdf jkl; asdf jkl; asdf jkl;",
 			"fdsa ;lkj fdsa ;lkj fdsa ;lkj",
@@ -160,7 +160,7 @@ var lessons = []Lesson{
 		},
 	},
 	{
-		Name: "Lesson 2 — 上排键 Top Row",
+		Name: "Lesson 2 — Top Row",
 		Lines: []string{
 			"qwer tyui op qwer tyui op qwer",
 			"rewq iuyt po rewq iuyt po rewq",
@@ -173,7 +173,7 @@ var lessons = []Lesson{
 		},
 	},
 	{
-		Name: "Lesson 3 — 下排键 Bottom Row",
+		Name: "Lesson 3 — Bottom Row",
 		Lines: []string{
 			"zxcv bnm, zxcv bnm, zxcv bnm,",
 			"vcxz ,mnb vcxz ,mnb vcxz ,mnb",
@@ -186,7 +186,7 @@ var lessons = []Lesson{
 		},
 	},
 	{
-		Name: "Lesson 4 — 全键盘混合",
+		Name: "Lesson 4 — Full Keyboard",
 		Lines: []string{
 			"The quick brown fox jumps over the lazy dog.",
 			"Pack my box with five dozen liquor jugs.",
@@ -199,7 +199,7 @@ var lessons = []Lesson{
 		},
 	},
 	{
-		Name: "Lesson 5 — 数字与符号",
+		Name: "Lesson 5 — Numbers & Symbols",
 		Lines: []string{
 			"1234567890 1234567890 1234567890",
 			"a1b2c3d4 e5f6g7h8 i9j0 k1l2m3",
@@ -212,7 +212,7 @@ var lessons = []Lesson{
 		},
 	},
 	{
-		Name: "Lesson 6 — 编程代码",
+		Name: "Lesson 6 — Programming",
 		Lines: []string{
 			"func main() {",
 			`    fmt.Println("Hello, World!")`,
@@ -375,13 +375,13 @@ func renderMenu(sel int) {
 	var b strings.Builder
 	b.WriteString(hTop() + "\n")
 	b.WriteString(hBlank() + "\n")
-	b.WriteString(hCenter(BOLD+FgCyn+"╔╦╗╔╦╗  打 字 练 习 "+RST) + "\n")
-	b.WriteString(hCenter(BOLD+FgCyn+" ║  ║   Typing Tutor"+RST) + "\n")
-	b.WriteString(hCenter(BOLD+FgCyn+" ╩  ╩   Go 复刻版   "+RST) + "\n")
+	b.WriteString(hCenter(BOLD+FgCyn+"╔╦╗╔╦╗  Typing Tutor"+RST) + "\n")
+	b.WriteString(hCenter(BOLD+FgCyn+" ║  ║   DOS TT Clone"+RST) + "\n")
+	b.WriteString(hCenter(BOLD+FgCyn+" ╩  ╩   in Golang   "+RST) + "\n")
 	b.WriteString(hBlank() + "\n")
-	b.WriteString(hCenter(FgGry+"经典 DOS TT 风格 · 终端打字练习程序"+RST) + "\n")
+	b.WriteString(hCenter(FgGry+"Classic DOS TT Style Terminal Typing Practice"+RST) + "\n")
 	b.WriteString(hMid() + "\n")
-	b.WriteString(hRow(FgYlw+"选择课程:"+RST) + "\n")
+	b.WriteString(hRow(FgYlw+"Select Lesson:"+RST) + "\n")
 	b.WriteString(hBlank() + "\n")
 	for i, l := range lessons {
 		marker := "  "
@@ -394,7 +394,7 @@ func renderMenu(sel int) {
 	}
 	b.WriteString(hBlank() + "\n")
 	b.WriteString(hMid() + "\n")
-	b.WriteString(hRow(FgGry+"↑↓ 选择 │ Enter 开始 │ Q 退出"+RST) + "\n")
+	b.WriteString(hRow(FgGry+"Up/Down Select │ Enter Start │ Q Quit"+RST) + "\n")
 	b.WriteString(hBot() + "\n")
 	emit(b.String())
 }
@@ -415,9 +415,9 @@ func renderTyping(s *Session) {
 		acc = 100
 	}
 
-	lineInfo := fmt.Sprintf("第 %d/%d 行", s.lineIdx+1, len(s.lesson.Lines))
+	lineInfo := fmt.Sprintf("Line %d/%d", s.lineIdx+1, len(s.lesson.Lines))
 	statLine := fmt.Sprintf(
-		"用时:%s%02d:%02d%s  速度:%s%.0f%s字/分  错误:%s%d%s  正确率:%s%.1f%%%s",
+		"Time:%s%02d:%02d%s  Speed:%s%.0f%sCPM  Errors:%s%d%s  Accuracy:%s%.1f%%%s",
 		FgYlw, mins, secs, RST,
 		FgGrn, cpm, RST,
 		FgRed, s.errors, RST,
@@ -455,14 +455,14 @@ func renderTyping(s *Session) {
 
 	var b strings.Builder
 	b.WriteString(hTop() + "\n")
-	b.WriteString(hCenter(BOLD+FgCyn+"TT — 打字练习"+RST) + "\n")
+	b.WriteString(hCenter(BOLD+FgCyn+"TT — Typing Practice"+RST) + "\n")
 	b.WriteString(hMid() + "\n")
 	b.WriteString(hRow(fmt.Sprintf("%s%s%s    %s", BOLD+FgWht, s.lesson.Name, RST, lineInfo)) + "\n")
 	b.WriteString(hRow(statLine) + "\n")
 	b.WriteString(hMid() + "\n")
 	b.WriteString(hBlank() + "\n")
-	b.WriteString(hRow(FgWht+BOLD+"目标: "+RST+FgWht+targetBuf.String()+RST) + "\n")
-	b.WriteString(hRow(FgWht+BOLD+"输入: "+RST+typedBuf.String()) + "\n")
+	b.WriteString(hRow(FgWht+BOLD+"Target: "+RST+FgWht+targetBuf.String()+RST) + "\n")
+	b.WriteString(hRow(FgWht+BOLD+"Input:  "+RST+typedBuf.String()) + "\n")
 	b.WriteString(hBlank() + "\n")
 	// progress bar
 	progress := 0
@@ -474,9 +474,9 @@ func renderTyping(s *Session) {
 	}
 	bar := FgGrn + strings.Repeat("█", progress) + FgGry + strings.Repeat("░", 40-progress) + RST
 	pct := float64(len(s.typed)) * 100 / float64(len(s.target))
-	b.WriteString(hRow(fmt.Sprintf("进度: [%s] %s%.0f%%%s", bar, FgYlw, pct, RST)) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("Progress: [%s] %s%.0f%%%s", bar, FgYlw, pct, RST)) + "\n")
 	b.WriteString(hMid() + "\n")
-	b.WriteString(hRow(FgGry+"Backspace=回退 │ ESC=菜单 │ Ctrl-C=退出"+RST) + "\n")
+	b.WriteString(hRow(FgGry+"Backspace=Delete │ ESC=Menu │ Ctrl-C=Quit"+RST) + "\n")
 	b.WriteString(hBot() + "\n")
 	emit(b.String())
 }
@@ -486,22 +486,22 @@ func renderLineComplete(s *Session, st Stats) {
 	var b strings.Builder
 	b.WriteString(hTop() + "\n")
 	b.WriteString(hBlank() + "\n")
-	b.WriteString(hCenter(BOLD+FgGrn+"✓ 本行完成!"+RST) + "\n")
+	b.WriteString(hCenter(BOLD+FgGrn+"✓ Line Complete!"+RST) + "\n")
 	b.WriteString(hBlank() + "\n")
 	b.WriteString(hMid() + "\n")
-	b.WriteString(hRow(fmt.Sprintf("字符: %s%d%s   正确: %s%d%s   错误: %s%d%s",
+	b.WriteString(hRow(fmt.Sprintf("Chars: %s%d%s   Correct: %s%d%s   Errors: %s%d%s",
 		FgWht+BOLD, st.Total, RST,
 		FgGrn+BOLD, st.Correct, RST,
 		FgRed+BOLD, st.Errors, RST)) + "\n")
-	b.WriteString(hRow(fmt.Sprintf("用时: %s%.1f秒%s   速度: %s%.0f 字/分%s   正确率: %s%.1f%%%s",
+	b.WriteString(hRow(fmt.Sprintf("Time: %s%.1fs%s   Speed: %s%.0f CPM%s   Accuracy: %s%.1f%%%s",
 		FgYlw, st.Elapsed.Seconds(), RST,
 		FgGrn, st.CPM(), RST,
 		FgCyn, st.Accuracy(), RST)) + "\n")
 	b.WriteString(hMid() + "\n")
 	if s.allDone() {
-		b.WriteString(hRow(FgYlw+BOLD+"课程完成！按任意键查看总成绩..."+RST) + "\n")
+		b.WriteString(hRow(FgYlw+BOLD+"Lesson complete! Press any key for results..."+RST) + "\n")
 	} else {
-		b.WriteString(hRow(FgGry+"按任意键继续下一行..."+RST) + "\n")
+		b.WriteString(hRow(FgGry+"Press any key for next line..."+RST) + "\n")
 	}
 	b.WriteString(hBot() + "\n")
 	emit(b.String())
@@ -531,25 +531,25 @@ func renderResults(s *Session) {
 	var b strings.Builder
 	b.WriteString(hTop() + "\n")
 	b.WriteString(hBlank() + "\n")
-	b.WriteString(hCenter(BOLD+FgCyn+"TT — 练习成绩单"+RST) + "\n")
+	b.WriteString(hCenter(BOLD+FgCyn+"TT — Score Report"+RST) + "\n")
 	b.WriteString(hBlank() + "\n")
 	b.WriteString(hMid() + "\n")
-	b.WriteString(hRow(fmt.Sprintf("课 程:  %s%s%s", FgWht+BOLD, s.lesson.Name, RST)) + "\n")
-	b.WriteString(hRow(fmt.Sprintf("总行数: %s%d%s", FgWht+BOLD, len(s.lesson.Lines), RST)) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("Lesson:   %s%s%s", FgWht+BOLD, s.lesson.Name, RST)) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("Lines:    %s%d%s", FgWht+BOLD, len(s.lesson.Lines), RST)) + "\n")
 	b.WriteString(hBlank() + "\n")
-	b.WriteString(hRow(fmt.Sprintf("总字符:  %s%d%s", FgWht+BOLD, ts.Total, RST)) + "\n")
-	b.WriteString(hRow(fmt.Sprintf("正 确:  %s%d%s", FgGrn+BOLD, ts.Correct, RST)) + "\n")
-	b.WriteString(hRow(fmt.Sprintf("错 误:  %s%d%s", FgRed+BOLD, ts.Errors, RST)) + "\n")
-	b.WriteString(hRow(fmt.Sprintf("总用时: %s%.1f 秒%s", FgYlw, ts.Elapsed.Seconds(), RST)) + "\n")
-	b.WriteString(hRow(fmt.Sprintf("速 度:  %s%.0f 字/分 (%.0f WPM)%s", FgGrn+BOLD, ts.CPM(), ts.WPM(), RST)) + "\n")
-	b.WriteString(hRow(fmt.Sprintf("正确率: %s%.1f%%%s", FgCyn+BOLD, ts.Accuracy(), RST)) + "\n")
-	b.WriteString(hBlank() + "\n")
-	b.WriteString(hMid() + "\n")
-	b.WriteString(hBlank() + "\n")
-	b.WriteString(hCenter(BOLD+FgYlw+"评 级: "+grade+RST) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("Chars:    %s%d%s", FgWht+BOLD, ts.Total, RST)) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("Correct:  %s%d%s", FgGrn+BOLD, ts.Correct, RST)) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("Errors:   %s%d%s", FgRed+BOLD, ts.Errors, RST)) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("Time:     %s%.1fs%s", FgYlw, ts.Elapsed.Seconds(), RST)) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("Speed:    %s%.0f CPM (%.0f WPM)%s", FgGrn+BOLD, ts.CPM(), ts.WPM(), RST)) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("Accuracy: %s%.1f%%%s", FgCyn+BOLD, ts.Accuracy(), RST)) + "\n")
 	b.WriteString(hBlank() + "\n")
 	b.WriteString(hMid() + "\n")
-	b.WriteString(hRow(FgGry+"R=重练 │ M=菜单 │ Q=退出"+RST) + "\n")
+	b.WriteString(hBlank() + "\n")
+	b.WriteString(hCenter(BOLD+FgYlw+"Grade: "+grade+RST) + "\n")
+	b.WriteString(hBlank() + "\n")
+	b.WriteString(hMid() + "\n")
+	b.WriteString(hRow(FgGry+"R=Retry │ M=Menu │ Q=Quit"+RST) + "\n")
 	b.WriteString(hBot() + "\n")
 	emit(b.String())
 }
@@ -626,7 +626,7 @@ func run() error {
 	fd := int(os.Stdin.Fd())
 	old, err := term.MakeRaw(fd)
 	if err != nil {
-		return fmt.Errorf("无法进入终端原始模式: %w", err)
+		return fmt.Errorf("failed to enter raw mode: %w", err)
 	}
 	defer func() {
 		showCur()
@@ -647,7 +647,7 @@ func run() error {
 		// Ctrl-C always quits
 		if k.kind == evCtrlC {
 			cls()
-			emit("再见！\n")
+			emit("Goodbye!\n")
 			return nil
 		}
 
@@ -673,7 +673,7 @@ func run() error {
 				switch k.ch {
 				case 'q', 'Q':
 					cls()
-					emit("再见！\n")
+					emit("Goodbye!\n")
 					return nil
 				default:
 					if k.ch >= '1' && k.ch <= rune('0'+len(lessons)) {
@@ -683,7 +683,7 @@ func run() error {
 				}
 			case evEscape:
 				cls()
-				emit("再见！\n")
+				emit("Goodbye!\n")
 				return nil
 			}
 
@@ -736,7 +736,7 @@ func run() error {
 					renderMenu(sel)
 				case 'q', 'Q':
 					cls()
-					emit("再见！\n")
+					emit("Goodbye!\n")
 					return nil
 				}
 			case evEscape:
@@ -749,7 +749,7 @@ func run() error {
 
 func main() {
 	if err := run(); err != nil {
-		fmt.Fprintf(os.Stderr, "错误: %v\r\n", err)
+		fmt.Fprintf(os.Stderr, "Error: %v\r\n", err)
 		os.Exit(1)
 	}
 }
