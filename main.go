@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/term"
@@ -19,10 +21,21 @@ func emit(s string) {
 }
 
 func emitf(f string, a ...any) { emit(fmt.Sprintf(f, a...)) }
-func cls()                     { os.Stdout.WriteString("\033[2J\033[H") }
-func bell()                    { os.Stdout.WriteString("\a") }
-func hideCur()                 { os.Stdout.WriteString("\033[?25l") }
-func showCur()                 { os.Stdout.WriteString("\033[?25h") }
+func cls() {
+	os.Stdout.WriteString("\033[2J\033[H")
+	// Fill the entire terminal background with TT deep blue
+	w, h, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		w, h = 80, 25
+	}
+	for i := 0; i < h; i++ {
+		os.Stdout.WriteString(fmt.Sprintf("\033[%d;1H"+TTBg+strings.Repeat(" ", w), i+1))
+	}
+	os.Stdout.WriteString("\033[H")
+}
+func bell()    { os.Stdout.WriteString("\a") }
+func hideCur() { os.Stdout.WriteString("\033[?25l") }
+func showCur() { os.Stdout.WriteString("\033[?25h") }
 
 // ════════════════════════════════════════════════════════════════════
 // ANSI color constants
@@ -41,8 +54,23 @@ const (
 	FgCyn = "\033[96m"
 	FgWht = "\033[97m"
 	FgGry = "\033[90m"
+	FgBlk = "\033[30m"
 
-	BgRed = "\033[41m"
+	BgRed  = "\033[41m"
+	BgBlu  = "\033[44m"
+	BgDkBl = "\033[48;5;17m" // Deep dark blue — classic DOS TT
+	BgCyn  = "\033[46m"
+	BgBlk  = "\033[40m"
+	BgGry  = "\033[100m"
+
+	// Classic DOS TT palette aliases
+	TTBg     = "\033[48;5;17m" // Deep blue background
+	TTFg     = "\033[97m"      // Bright white foreground
+	TTTitle  = "\033[93m"      // Yellow titles
+	TTBorder = "\033[96m"      // Cyan borders
+	TTHilite = "\033[92m"      // Green highlights
+	TTErr    = "\033[91m"      // Red errors
+	TTDim    = "\033[37m"      // Dimmed text
 )
 
 // ════════════════════════════════════════════════════════════════════
@@ -51,10 +79,12 @@ const (
 
 const boxW = 72
 
-func hTop() string   { return "╔" + strings.Repeat("═", boxW-2) + "╗" }
-func hMid() string   { return "╠" + strings.Repeat("═", boxW-2) + "╣" }
-func hBot() string   { return "╚" + strings.Repeat("═", boxW-2) + "╝" }
-func hBlank() string { return "║" + strings.Repeat(" ", boxW-2) + "║" }
+func hTop() string { return TTBg + TTBorder + "╔" + strings.Repeat("═", boxW-2) + "╗" + RST }
+func hMid() string { return TTBg + TTBorder + "╠" + strings.Repeat("═", boxW-2) + "╣" + RST }
+func hBot() string { return TTBg + TTBorder + "╚" + strings.Repeat("═", boxW-2) + "╝" + RST }
+func hBlank() string {
+	return TTBg + TTBorder + "║" + TTFg + strings.Repeat(" ", boxW-2) + TTBorder + "║" + RST
+}
 
 // hRow left-aligns content inside ║ ... ║, padding with spaces.
 func hRow(s string) string {
@@ -63,7 +93,7 @@ func hRow(s string) string {
 	if pad < 0 {
 		pad = 0
 	}
-	return "║ " + s + strings.Repeat(" ", pad) + " ║"
+	return TTBg + TTBorder + "║ " + TTFg + s + TTFg + strings.Repeat(" ", pad) + TTBorder + " ║" + RST
 }
 
 // hCenter centres content inside ║ ... ║.
@@ -75,7 +105,7 @@ func hCenter(s string) string {
 	}
 	left := (inner - sl) / 2
 	right := inner - sl - left
-	return "║ " + strings.Repeat(" ", left) + s + strings.Repeat(" ", right) + " ║"
+	return TTBg + TTBorder + "║ " + TTFg + strings.Repeat(" ", left) + s + strings.Repeat(" ", right) + TTBorder + " ║" + RST
 }
 
 // vLen returns the visible display width of s in terminal columns,
@@ -372,30 +402,41 @@ func (s *Session) totalStats() Stats {
 
 func renderMenu(sel int) {
 	cls()
+	nItems := len(lessons) + 1 // +1 for Space Invaders
 	var b strings.Builder
 	b.WriteString(hTop() + "\n")
 	b.WriteString(hBlank() + "\n")
-	b.WriteString(hCenter(BOLD+FgCyn+"╔╦╗╔╦╗  Typing Tutor"+RST) + "\n")
-	b.WriteString(hCenter(BOLD+FgCyn+" ║  ║   DOS TT Clone"+RST) + "\n")
-	b.WriteString(hCenter(BOLD+FgCyn+" ╩  ╩   in Golang   "+RST) + "\n")
+	b.WriteString(hCenter(BOLD+TTTitle+"╔╦╗╔╦╗  Typing Tutor"+RST+TTBg) + "\n")
+	b.WriteString(hCenter(BOLD+TTTitle+" ║  ║   DOS TT Clone"+RST+TTBg) + "\n")
+	b.WriteString(hCenter(BOLD+TTTitle+" ╩  ╩   in Golang   "+RST+TTBg) + "\n")
 	b.WriteString(hBlank() + "\n")
-	b.WriteString(hCenter(FgGry+"Classic DOS TT Style Terminal Typing Practice"+RST) + "\n")
+	b.WriteString(hCenter(TTDim+"Classic DOS TT Style Terminal Typing Practice"+RST+TTBg) + "\n")
 	b.WriteString(hMid() + "\n")
-	b.WriteString(hRow(FgYlw+"Select Lesson:"+RST) + "\n")
+	b.WriteString(hRow(TTTitle+"Select Lesson:"+RST+TTBg) + "\n")
 	b.WriteString(hBlank() + "\n")
 	for i, l := range lessons {
 		marker := "  "
-		color := FgWht
+		color := TTFg
 		if i == sel {
-			marker = FgCyn + "▸ " + RST
+			marker = FgCyn + "▸ " + RST + TTBg
 			color = FgCyn + BOLD
 		}
-		b.WriteString(hRow(fmt.Sprintf("%s%s%d. %s%s", marker, color, i+1, l.Name, RST)) + "\n")
+		b.WriteString(hRow(fmt.Sprintf("%s%s%d. %s%s", marker, color, i+1, l.Name, RST+TTBg)) + "\n")
 	}
+	// Space Invaders entry
+	siIdx := len(lessons)
+	marker := "  "
+	color := TTFg
+	if sel == siIdx {
+		marker = FgCyn + "▸ " + RST + TTBg
+		color = FgCyn + BOLD
+	}
+	b.WriteString(hRow(fmt.Sprintf("%s%s%d. 👾  Space Invaders — Typing Game%s", marker, color, siIdx+1, RST+TTBg)) + "\n")
 	b.WriteString(hBlank() + "\n")
 	b.WriteString(hMid() + "\n")
-	b.WriteString(hRow(FgGry+"Up/Down Select │ Enter Start │ Q Quit"+RST) + "\n")
+	b.WriteString(hRow(TTDim+"Up/Down Select │ Enter Start │ Q Quit"+RST+TTBg) + "\n")
 	b.WriteString(hBot() + "\n")
+	_ = nItems
 	emit(b.String())
 }
 
@@ -455,14 +496,14 @@ func renderTyping(s *Session) {
 
 	var b strings.Builder
 	b.WriteString(hTop() + "\n")
-	b.WriteString(hCenter(BOLD+FgCyn+"TT — Typing Practice"+RST) + "\n")
+	b.WriteString(hCenter(BOLD+TTTitle+"TT — Typing Practice"+RST+TTBg) + "\n")
 	b.WriteString(hMid() + "\n")
-	b.WriteString(hRow(fmt.Sprintf("%s%s%s    %s", BOLD+FgWht, s.lesson.Name, RST, lineInfo)) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("%s%s%s    %s", BOLD+TTFg, s.lesson.Name, RST+TTBg, lineInfo)) + "\n")
 	b.WriteString(hRow(statLine) + "\n")
 	b.WriteString(hMid() + "\n")
 	b.WriteString(hBlank() + "\n")
-	b.WriteString(hRow(FgWht+BOLD+"Target: "+RST+FgWht+targetBuf.String()+RST) + "\n")
-	b.WriteString(hRow(FgWht+BOLD+"Input:  "+RST+typedBuf.String()) + "\n")
+	b.WriteString(hRow(FgWht+BOLD+"Target: "+RST+TTBg+FgWht+targetBuf.String()+RST+TTBg) + "\n")
+	b.WriteString(hRow(FgWht+BOLD+"Input:  "+RST+TTBg+typedBuf.String()+RST+TTBg) + "\n")
 	b.WriteString(hBlank() + "\n")
 	// progress bar
 	progress := 0
@@ -474,9 +515,9 @@ func renderTyping(s *Session) {
 	}
 	bar := FgGrn + strings.Repeat("█", progress) + FgGry + strings.Repeat("░", 40-progress) + RST
 	pct := float64(len(s.typed)) * 100 / float64(len(s.target))
-	b.WriteString(hRow(fmt.Sprintf("Progress: [%s] %s%.0f%%%s", bar, FgYlw, pct, RST)) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("Progress: [%s] %s%.0f%%%s", bar, FgYlw, pct, RST+TTBg)) + "\n")
 	b.WriteString(hMid() + "\n")
-	b.WriteString(hRow(FgGry+"Backspace=Delete │ ESC=Menu │ Ctrl-C=Quit"+RST) + "\n")
+	b.WriteString(hRow(TTDim+"Backspace=Delete │ ESC=Menu │ Ctrl-C=Quit"+RST+TTBg) + "\n")
 	b.WriteString(hBot() + "\n")
 	emit(b.String())
 }
@@ -486,22 +527,22 @@ func renderLineComplete(s *Session, st Stats) {
 	var b strings.Builder
 	b.WriteString(hTop() + "\n")
 	b.WriteString(hBlank() + "\n")
-	b.WriteString(hCenter(BOLD+FgGrn+"✓ Line Complete!"+RST) + "\n")
+	b.WriteString(hCenter(BOLD+TTHilite+"✓ Line Complete!"+RST+TTBg) + "\n")
 	b.WriteString(hBlank() + "\n")
 	b.WriteString(hMid() + "\n")
 	b.WriteString(hRow(fmt.Sprintf("Chars: %s%d%s   Correct: %s%d%s   Errors: %s%d%s",
-		FgWht+BOLD, st.Total, RST,
-		FgGrn+BOLD, st.Correct, RST,
-		FgRed+BOLD, st.Errors, RST)) + "\n")
+		TTFg+BOLD, st.Total, RST+TTBg,
+		FgGrn+BOLD, st.Correct, RST+TTBg,
+		FgRed+BOLD, st.Errors, RST+TTBg)) + "\n")
 	b.WriteString(hRow(fmt.Sprintf("Time: %s%.1fs%s   Speed: %s%.0f CPM%s   Accuracy: %s%.1f%%%s",
-		FgYlw, st.Elapsed.Seconds(), RST,
-		FgGrn, st.CPM(), RST,
-		FgCyn, st.Accuracy(), RST)) + "\n")
+		FgYlw, st.Elapsed.Seconds(), RST+TTBg,
+		FgGrn, st.CPM(), RST+TTBg,
+		FgCyn, st.Accuracy(), RST+TTBg)) + "\n")
 	b.WriteString(hMid() + "\n")
 	if s.allDone() {
-		b.WriteString(hRow(FgYlw+BOLD+"Lesson complete! Press any key for results..."+RST) + "\n")
+		b.WriteString(hRow(TTTitle+BOLD+"Lesson complete! Press any key for results..."+RST+TTBg) + "\n")
 	} else {
-		b.WriteString(hRow(FgGry+"Press any key for next line..."+RST) + "\n")
+		b.WriteString(hRow(TTDim+"Press any key for next line..."+RST+TTBg) + "\n")
 	}
 	b.WriteString(hBot() + "\n")
 	emit(b.String())
@@ -531,25 +572,250 @@ func renderResults(s *Session) {
 	var b strings.Builder
 	b.WriteString(hTop() + "\n")
 	b.WriteString(hBlank() + "\n")
-	b.WriteString(hCenter(BOLD+FgCyn+"TT — Score Report"+RST) + "\n")
+	b.WriteString(hCenter(BOLD+TTTitle+"TT — Score Report"+RST+TTBg) + "\n")
 	b.WriteString(hBlank() + "\n")
 	b.WriteString(hMid() + "\n")
-	b.WriteString(hRow(fmt.Sprintf("Lesson:   %s%s%s", FgWht+BOLD, s.lesson.Name, RST)) + "\n")
-	b.WriteString(hRow(fmt.Sprintf("Lines:    %s%d%s", FgWht+BOLD, len(s.lesson.Lines), RST)) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("Lesson:   %s%s%s", TTFg+BOLD, s.lesson.Name, RST+TTBg)) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("Lines:    %s%d%s", TTFg+BOLD, len(s.lesson.Lines), RST+TTBg)) + "\n")
 	b.WriteString(hBlank() + "\n")
-	b.WriteString(hRow(fmt.Sprintf("Chars:    %s%d%s", FgWht+BOLD, ts.Total, RST)) + "\n")
-	b.WriteString(hRow(fmt.Sprintf("Correct:  %s%d%s", FgGrn+BOLD, ts.Correct, RST)) + "\n")
-	b.WriteString(hRow(fmt.Sprintf("Errors:   %s%d%s", FgRed+BOLD, ts.Errors, RST)) + "\n")
-	b.WriteString(hRow(fmt.Sprintf("Time:     %s%.1fs%s", FgYlw, ts.Elapsed.Seconds(), RST)) + "\n")
-	b.WriteString(hRow(fmt.Sprintf("Speed:    %s%.0f CPM (%.0f WPM)%s", FgGrn+BOLD, ts.CPM(), ts.WPM(), RST)) + "\n")
-	b.WriteString(hRow(fmt.Sprintf("Accuracy: %s%.1f%%%s", FgCyn+BOLD, ts.Accuracy(), RST)) + "\n")
-	b.WriteString(hBlank() + "\n")
-	b.WriteString(hMid() + "\n")
-	b.WriteString(hBlank() + "\n")
-	b.WriteString(hCenter(BOLD+FgYlw+"Grade: "+grade+RST) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("Chars:    %s%d%s", TTFg+BOLD, ts.Total, RST+TTBg)) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("Correct:  %s%d%s", FgGrn+BOLD, ts.Correct, RST+TTBg)) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("Errors:   %s%d%s", FgRed+BOLD, ts.Errors, RST+TTBg)) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("Time:     %s%.1fs%s", FgYlw, ts.Elapsed.Seconds(), RST+TTBg)) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("Speed:    %s%.0f CPM (%.0f WPM)%s", FgGrn+BOLD, ts.CPM(), ts.WPM(), RST+TTBg)) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("Accuracy: %s%.1f%%%s", FgCyn+BOLD, ts.Accuracy(), RST+TTBg)) + "\n")
 	b.WriteString(hBlank() + "\n")
 	b.WriteString(hMid() + "\n")
-	b.WriteString(hRow(FgGry+"R=Retry │ M=Menu │ Q=Quit"+RST) + "\n")
+	b.WriteString(hBlank() + "\n")
+	b.WriteString(hCenter(BOLD+TTTitle+"Grade: "+grade+RST+TTBg) + "\n")
+	b.WriteString(hBlank() + "\n")
+	b.WriteString(hMid() + "\n")
+	b.WriteString(hRow(TTDim+"R=Retry │ M=Menu │ Q=Quit"+RST+TTBg) + "\n")
+	b.WriteString(hBot() + "\n")
+	emit(b.String())
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Space Invaders — Typing Game (classic TT feature)
+// ════════════════════════════════════════════════════════════════════
+
+const (
+	siFieldW = 60 // play field width
+	siFieldH = 18 // play field height (rows aliens can occupy)
+)
+
+// Invader is a single falling alien with a letter on it.
+type Invader struct {
+	ch   rune    // letter to type
+	x    int     // column position (0-based)
+	y    float64 // row position (fractional, rendered as int)
+	dead bool    // destroyed?
+}
+
+// SpaceGame holds the full game state.
+type SpaceGame struct {
+	invaders   []Invader
+	score      int
+	lives      int
+	level      int
+	missed     int
+	hits       int
+	speed      float64 // rows per tick
+	spawnRate  int     // ticks between spawns
+	tick       int
+	lastRender time.Time
+	tickRate   time.Duration
+	gameOver   bool
+}
+
+func newSpaceGame() *SpaceGame {
+	g := &SpaceGame{
+		lives:     3,
+		level:     1,
+		speed:     0.3,
+		spawnRate: 8,
+		tickRate:  120 * time.Millisecond,
+	}
+	return g
+}
+
+func (g *SpaceGame) spawnInvader() {
+	// pick a random lowercase letter
+	letters := "abcdefghijklmnopqrstuvwxyz"
+	ch := rune(letters[rand.Intn(len(letters))])
+	x := rand.Intn(siFieldW-4) + 2
+	g.invaders = append(g.invaders, Invader{ch: ch, x: x, y: 0})
+}
+
+func (g *SpaceGame) update() {
+	if g.gameOver {
+		return
+	}
+	g.tick++
+
+	// spawn new invaders
+	if g.tick%g.spawnRate == 0 {
+		g.spawnInvader()
+	}
+
+	// move invaders down
+	alive := g.invaders[:0]
+	for i := range g.invaders {
+		inv := &g.invaders[i]
+		if inv.dead {
+			continue
+		}
+		inv.y += g.speed
+		if int(inv.y) >= siFieldH {
+			// reached bottom — lost a life
+			g.lives--
+			g.missed++
+			bell()
+			if g.lives <= 0 {
+				g.gameOver = true
+			}
+			continue
+		}
+		alive = append(alive, *inv)
+	}
+	g.invaders = alive
+
+	// level up every 15 hits
+	newLevel := g.hits/15 + 1
+	if newLevel > g.level {
+		g.level = newLevel
+		g.speed += 0.08
+		if g.spawnRate > 3 {
+			g.spawnRate--
+		}
+	}
+}
+
+func (g *SpaceGame) tryShoot(ch rune) bool {
+	// find the lowest (closest to bottom) invader with this letter
+	bestIdx := -1
+	bestY := -1.0
+	for i, inv := range g.invaders {
+		if !inv.dead && inv.ch == ch {
+			if inv.y > bestY {
+				bestY = inv.y
+				bestIdx = i
+			}
+		}
+	}
+	if bestIdx >= 0 {
+		g.invaders[bestIdx].dead = true
+		g.score += 10 * g.level
+		g.hits++
+		return true
+	}
+	return false
+}
+
+func renderSpaceGame(g *SpaceGame) {
+	cls()
+	var b strings.Builder
+
+	b.WriteString(hTop() + "\n")
+	b.WriteString(hCenter(BOLD+TTTitle+"👾 SPACE INVADERS — Type to Shoot! 👾"+RST+TTBg) + "\n")
+	b.WriteString(hMid() + "\n")
+
+	// Status bar
+	livesStr := strings.Repeat("❤ ", g.lives) + strings.Repeat("  ", 3-g.lives)
+	b.WriteString(hRow(fmt.Sprintf(
+		"Score:%s%5d%s  Level:%s%d%s  Lives:%s%s%s  Hits:%s%d%s",
+		FgYlw+BOLD, g.score, RST+TTBg,
+		FgCyn+BOLD, g.level, RST+TTBg,
+		FgRed+BOLD, livesStr, RST+TTBg,
+		FgGrn+BOLD, g.hits, RST+TTBg,
+	)) + "\n")
+	b.WriteString(hMid() + "\n")
+
+	// Build the play field
+	field := make([][]rune, siFieldH)
+	for r := 0; r < siFieldH; r++ {
+		field[r] = make([]rune, siFieldW)
+		for c := 0; c < siFieldW; c++ {
+			field[r][c] = ' '
+		}
+	}
+
+	// Place invaders on the field
+	for _, inv := range g.invaders {
+		if inv.dead {
+			continue
+		}
+		row := int(inv.y)
+		if row >= 0 && row < siFieldH && inv.x >= 0 && inv.x < siFieldW {
+			field[row][inv.x] = inv.ch
+		}
+	}
+
+	// Render field rows
+	for r := 0; r < siFieldH; r++ {
+		var row strings.Builder
+		for c := 0; c < siFieldW; c++ {
+			ch := field[r][c]
+			if ch != ' ' {
+				// Color aliens by proximity: green at top, yellow mid, red near bottom
+				color := FgGrn
+				if r > siFieldH*2/3 {
+					color = FgRed + BOLD
+				} else if r > siFieldH/3 {
+					color = FgYlw + BOLD
+				} else {
+					color = FgGrn + BOLD
+				}
+				row.WriteString(color)
+				row.WriteRune(ch)
+				row.WriteString(RST + TTBg)
+			} else {
+				// Starfield: occasional dim dots
+				if (r*siFieldW+c)%37 == 0 {
+					row.WriteString(DIM + "·" + RST + TTBg)
+				} else {
+					row.WriteRune(' ')
+				}
+			}
+		}
+		// Pad to fit inside the box (boxW-4 inner width, field is siFieldW)
+		padLeft := (boxW - 4 - siFieldW) / 2
+		padRight := boxW - 4 - siFieldW - padLeft
+		if padLeft < 0 {
+			padLeft = 0
+		}
+		if padRight < 0 {
+			padRight = 0
+		}
+		b.WriteString(TTBg + TTBorder + "║ " + TTFg +
+			strings.Repeat(" ", padLeft) +
+			row.String() +
+			strings.Repeat(" ", padRight) +
+			TTBorder + " ║" + RST + "\n")
+	}
+
+	// Cannon at bottom
+	cannonPad := (boxW - 4 - siFieldW) / 2
+	if cannonPad < 0 {
+		cannonPad = 0
+	}
+	cannon := strings.Repeat(" ", siFieldW/2-1) + FgCyn + BOLD + "▲" + RST + TTBg + strings.Repeat(" ", siFieldW/2)
+	b.WriteString(TTBg + TTBorder + "║ " + TTFg +
+		strings.Repeat(" ", cannonPad) + cannon +
+		strings.Repeat(" ", (boxW-4-siFieldW)-cannonPad) +
+		TTBorder + " ║" + RST + "\n")
+
+	b.WriteString(hMid() + "\n")
+	if g.gameOver {
+		b.WriteString(hCenter(BOLD+FgRed+"GAME OVER!"+RST+TTBg) + "\n")
+		b.WriteString(hRow(fmt.Sprintf("Final Score: %s%d%s   Hits: %s%d%s   Missed: %s%d%s",
+			FgYlw+BOLD, g.score, RST+TTBg,
+			FgGrn+BOLD, g.hits, RST+TTBg,
+			FgRed+BOLD, g.missed, RST+TTBg)) + "\n")
+		b.WriteString(hRow(TTDim+"R=Restart │ M=Menu │ Q=Quit"+RST+TTBg) + "\n")
+	} else {
+		b.WriteString(hRow(TTDim+"Type letters to shoot aliens │ ESC=Menu"+RST+TTBg) + "\n")
+	}
 	b.WriteString(hBot() + "\n")
 	emit(b.String())
 }
@@ -620,7 +886,86 @@ const (
 	stTyping
 	stLineEnd
 	stResults
+	stSpaceInv // Space Invaders game
 )
+
+// keyChan starts a background goroutine that reads keys and sends them on a channel.
+func keyChan() <-chan keyEvent {
+	ch := make(chan keyEvent, 8)
+	go func() {
+		buf := make([]byte, 16)
+		for {
+			k := readKey(buf)
+			ch <- k
+		}
+	}()
+	return ch
+}
+
+// runSpaceInvaders runs the Space Invaders game loop with its own ticker.
+// Returns the action to take: "menu", "quit", or "".
+func runSpaceInvaders(keys <-chan keyEvent) string {
+	game := newSpaceGame()
+	game.lastRender = time.Now()
+	renderSpaceGame(game)
+
+	ticker := time.NewTicker(game.tickRate)
+	defer ticker.Stop()
+
+	var mu sync.Mutex
+
+	for {
+		select {
+		case <-ticker.C:
+			mu.Lock()
+			if !game.gameOver {
+				game.update()
+				renderSpaceGame(game)
+				// adjust ticker if speed changed
+			}
+			mu.Unlock()
+
+		case k := <-keys:
+			mu.Lock()
+			if k.kind == evCtrlC {
+				mu.Unlock()
+				return "quit"
+			}
+			if k.kind == evEscape {
+				mu.Unlock()
+				return "menu"
+			}
+
+			if game.gameOver {
+				if k.kind == evChar {
+					switch k.ch {
+					case 'r', 'R':
+						game = newSpaceGame()
+						game.lastRender = time.Now()
+						renderSpaceGame(game)
+					case 'm', 'M':
+						mu.Unlock()
+						return "menu"
+					case 'q', 'Q':
+						mu.Unlock()
+						return "quit"
+					}
+				}
+			} else {
+				if k.kind == evChar {
+					ch := k.ch
+					if ch >= 'A' && ch <= 'Z' {
+						ch = ch - 'A' + 'a'
+					}
+					if game.tryShoot(ch) {
+						renderSpaceGame(game)
+					}
+				}
+			}
+			mu.Unlock()
+		}
+	}
+}
 
 func run() error {
 	fd := int(os.Stdin.Fd())
@@ -634,7 +979,8 @@ func run() error {
 	}()
 
 	hideCur()
-	buf := make([]byte, 16)
+	keys := keyChan()
+	nMenu := len(lessons) + 1 // lessons + Space Invaders
 	sel := 0
 	state := stMenu
 	var sess *Session
@@ -642,7 +988,7 @@ func run() error {
 	renderMenu(sel)
 
 	for {
-		k := readKey(buf)
+		k := <-keys
 
 		// Ctrl-C always quits
 		if k.kind == evCtrlC {
@@ -661,14 +1007,28 @@ func run() error {
 				}
 				renderMenu(sel)
 			case evDown:
-				if sel < len(lessons)-1 {
+				if sel < nMenu-1 {
 					sel++
 				}
 				renderMenu(sel)
 			case evEnter:
-				sess = newSession(&lessons[sel])
-				state = stTyping
-				renderTyping(sess)
+				if sel == len(lessons) {
+					// Space Invaders — runs its own loop
+					result := runSpaceInvaders(keys)
+					switch result {
+					case "quit":
+						cls()
+						emit("Goodbye!\n")
+						return nil
+					default: // "menu"
+						state = stMenu
+						renderMenu(sel)
+					}
+				} else {
+					sess = newSession(&lessons[sel])
+					state = stTyping
+					renderTyping(sess)
+				}
 			case evChar:
 				switch k.ch {
 				case 'q', 'Q':
@@ -676,7 +1036,7 @@ func run() error {
 					emit("Goodbye!\n")
 					return nil
 				default:
-					if k.ch >= '1' && k.ch <= rune('0'+len(lessons)) {
+					if k.ch >= '1' && k.ch <= rune('0'+nMenu) {
 						sel = int(k.ch - '1')
 						renderMenu(sel)
 					}
