@@ -162,6 +162,12 @@ func isWide(r rune) bool {
 		return true
 	case r >= 0x20000 && r <= 0x2FA1F: // CJK Extension B+ & Compat Suppl
 		return true
+	case r >= 0x1F300 && r <= 0x1FAFF: // Emoji Symbols & Pictographs
+		return true
+	case r >= 0x2600 && r <= 0x27BF: // Misc Symbols & Dingbats
+		return true
+	case r >= 0x231A && r <= 0x23FF: // Misc Technical (some emoji)
+		return true
 	}
 	return false
 }
@@ -431,7 +437,7 @@ func renderMenu(sel int) {
 		marker = FgCyn + "▸ " + RST + TTBg
 		color = FgCyn + BOLD
 	}
-	b.WriteString(hRow(fmt.Sprintf("%s%s%d. 👾  Space Invaders — Typing Game%s", marker, color, siIdx+1, RST+TTBg)) + "\n")
+	b.WriteString(hRow(fmt.Sprintf("%s%s%d. Space Invaders -- Typing Game%s", marker, color, siIdx+1, RST+TTBg)) + "\n")
 	b.WriteString(hBlank() + "\n")
 	b.WriteString(hMid() + "\n")
 	b.WriteString(hRow(TTDim+"Up/Down Select │ Enter Start │ Q Quit"+RST+TTBg) + "\n")
@@ -717,11 +723,11 @@ func renderSpaceGame(g *SpaceGame) {
 	var b strings.Builder
 
 	b.WriteString(hTop() + "\n")
-	b.WriteString(hCenter(BOLD+TTTitle+"👾 SPACE INVADERS — Type to Shoot! 👾"+RST+TTBg) + "\n")
+	b.WriteString(hCenter(BOLD+TTTitle+"** SPACE INVADERS -- Type to Shoot! **"+RST+TTBg) + "\n")
 	b.WriteString(hMid() + "\n")
 
 	// Status bar
-	livesStr := strings.Repeat("❤ ", g.lives) + strings.Repeat("  ", 3-g.lives)
+	livesStr := strings.Repeat("* ", g.lives) + strings.Repeat("  ", 3-g.lives)
 	b.WriteString(hRow(fmt.Sprintf(
 		"Score:%s%5d%s  Level:%s%d%s  Lives:%s%s%s  Hits:%s%d%s",
 		FgYlw+BOLD, g.score, RST+TTBg,
