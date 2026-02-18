@@ -236,46 +236,83 @@ type Lesson struct {
 
 var lessons = []Lesson{
 	{
-		Name: "Lesson 1 — Home Row",
+		Name: "Lesson 1 — Home Row Basics",
 		Lines: []string{
 			"asdf jkl; asdf jkl; asdf jkl;",
 			"fdsa ;lkj fdsa ;lkj fdsa ;lkj",
 			"aa ss dd ff jj kk ll ;; aa ss",
 			"fj fj dk dk sl sl a; a; fj dk",
+			"ff jj ff jj dd kk dd kk ss ll",
 			"add dad fad lad fall lass flask",
 			"a sad lass; a glad dad; all fall",
 			"ask a lad; add a flask; fall all",
 			"glad dads fall; sad lads add all",
+			"salad flask falls; all lads ask",
+			"dad had a salad;lass adds salt",
+			"afall; a flask; all salads fade",
 		},
 	},
 	{
-		Name: "Lesson 2 — Top Row",
+		Name: "Lesson 2 — Home Row Words",
+		Lines: []string{
+			"staff shall glass flash slash",
+			"daffodil alkaloid scandal jazz",
+			"adds falls flask salads half",
+			"alas Alaska dad shalllass all",
+			"a glad lad asks a sad lass",
+			"all salads shall add a dash",
+			"dads ask lads; flask falls alas",
+			"a flash glass falls; all dash",
+			"glad dads add salads; sad falls",
+			"a jazz flask shall flash alas",
+			"all staff shall add half a glass",
+			"dad asks; lass falls; lad dashes",
+		},
+	},
+	{
+		Name: "Lesson 3 — Top Row",
 		Lines: []string{
 			"qwer tyui op qwer tyui op qwer",
 			"rewq iuyt po rewq iuyt po rewq",
+			"qq ww ee rr tt yy uu ii oo pp",
+			"we were where there their trip",
 			"the quit wire poor your power",
 			"quote quite tower rope ripe wipe",
 			"we were quite proper true type",
 			"your quiet power requires work",
 			"write proper quotes quickly too",
 			"ripe fruit requires quiet toil",
+			"route trout quip upper poor wit",
+			"i type quietly; you wrote poetry",
+			"it is quite proper to write true",
+			"utter rot; ripe opportunity waits",
+			"equity requires perpetual effort",
+			"quiet power; outer tower; poetry",
 		},
 	},
 	{
-		Name: "Lesson 3 — Bottom Row",
+		Name: "Lesson 4 — Bottom Row",
 		Lines: []string{
 			"zxcv bnm, zxcv bnm, zxcv bnm,",
 			"vcxz ,mnb vcxz ,mnb vcxz ,mnb",
+			"zz xx cc vv bb nn mm ,, zz xx",
 			"can van ban man box mix cab zinc",
 			"vim cave combine convex maximum",
 			"move back next cabin became calm",
 			"combine zinc vim cave move brave",
 			"become maximum cabin convex back",
 			"brave zinc move calm become next",
+			"blaze combat verb crumb benzene",
+			"vibrant music; exotic vacuum zone",
+			"commando vex; magazine; nobleman",
+			"combine brave maximum convex vim",
+			"zinc cabin; calm cave; back next",
+			"combat zone; vibrant blaze; verb",
+			"nobleman commando; exotic vacuum",
 		},
 	},
 	{
-		Name: "Lesson 4 — Full Keyboard",
+		Name: "Lesson 5 — Full Alphabet",
 		Lines: []string{
 			"The quick brown fox jumps over the lazy dog.",
 			"Pack my box with five dozen liquor jugs.",
@@ -285,23 +322,119 @@ var lessons = []Lesson{
 			"Crazy Frederick bought many very exquisite opal jewels.",
 			"We promptly judged antique ivory buckles for the prize.",
 			"A quick movement of the enemy will jeopardize gunboats.",
+			"Amazingly few discotheques provide jukeboxes.",
+			"My girl wove six dozen plaid jackets before she quit.",
+			"Six big devils from Japan quickly forgot how to waltz.",
+			"The job requires extra pluck and zeal from young wives.",
+			"Grumpy wizards make toxic brew for the evil queen.",
+			"Few quips galvanized the mock jury box.",
+			"The wizard quickly jinxed the gnomes before they vaporized.",
+			"Vexed nymphs go for quick waltz job.",
 		},
 	},
 	{
-		Name: "Lesson 5 — Numbers & Symbols",
+		Name: "Lesson 6 — Capital Letters",
+		Lines: []string{
+			"Alice Bob Carol Dave Eve Frank Grace",
+			"London Paris Tokyo Berlin Rome Madrid",
+			"January February March April May June",
+			"Monday Tuesday Wednesday Thursday Friday",
+			"Mercury Venus Earth Mars Jupiter Saturn",
+			"Atlantic Pacific Indian Arctic Southern",
+			"Dear Sir, I am writing to confirm the appointment.",
+			"The United Nations was founded in San Francisco.",
+			"Mount Everest is located in the Himalayas.",
+			"Dr. Smith and Mrs. Johnson traveled to New York.",
+			"The Amazon River flows through South America.",
+			"Apple Inc. was founded by Steve Jobs.",
+		},
+	},
+	{
+		Name: "Lesson 7 — Numbers & Symbols",
 		Lines: []string{
 			"1234567890 1234567890 1234567890",
 			"a1b2c3d4 e5f6g7h8 i9j0 k1l2m3",
+			"11 22 33 44 55 66 77 88 99 00",
 			"100 + 200 = 300; 55 * 3 = 165;",
 			"price: $19.99; tax: 8.5%; total: $21.69",
 			"email@host.com; http://example.org",
 			"file_name.txt; path/to/dir; C:\\DOS",
 			"(a + b) * c = d; [x] = {y};",
 			"#include <stdio.h> /* comment */",
+			"2024-12-31 23:59:59 UTC+08:00",
+			"tel: +1-800-555-0199; fax: 555-0100",
+			"128.0.0.1:8080; 192.168.1.1/24",
+			"50% off! was $99.99 now $49.99!",
+			"sqrt(144) = 12; pi ~= 3.14159",
+			"array[0] = map[key]; *ptr = &val;",
+			"<div class=\"main\"> &amp; </div>",
 		},
 	},
 	{
-		Name: "Lesson 6 — Programming",
+		Name: "Lesson 8 — Punctuation Drill",
+		Lines: []string{
+			"Hello, World! How are you? I'm fine.",
+			"\"To be, or not to be,\" he said.",
+			"It's a bird! It's a plane! No -- it's Superman!",
+			"red, orange, yellow, green, blue, indigo, violet",
+			"Mr. Smith (CEO) earned $1.5M last year.",
+			"Note: items marked with * are required.",
+			"Q: What time? A: 3:30 p.m. sharp.",
+			"first-class; well-known; self-taught",
+			"She said, \"Don't stop!\" and ran faster.",
+			"x = f(a, b); y = g(c, d); z = h(x, y);",
+			"one: two: three; four; five -- six -- seven",
+			"file.txt, file.doc, file.pdf, file.zip",
+			"yes/no; true/false; on/off; up/down",
+			"[URGENT] Re: Meeting @2pm #room-404",
+			"user@domain.com | admin@server.org",
+			"(1) first, (2) second, (3) third.",
+		},
+	},
+	{
+		Name: "Lesson 9 — Common English",
+		Lines: []string{
+			"the be to of and a in that have I",
+			"it for not on with he as you do at",
+			"this but his by from they we say her",
+			"she or an will my one all would there",
+			"The world is full of willing people.",
+			"Some willing to work, the rest willing to let them.",
+			"Experience is the teacher of all things.",
+			"In the middle of difficulty lies opportunity.",
+			"Success is not final, failure is not fatal.",
+			"It is the courage to continue that counts.",
+			"Life is what happens when you are busy.",
+			"You miss every shot you do not take.",
+			"Practice makes perfect, so keep typing.",
+			"The best way to predict the future is to create it.",
+			"Knowledge is power, but enthusiasm pulls the switch.",
+			"Every expert was once a beginner at the keyboard.",
+		},
+	},
+	{
+		Name: "Lesson 10 — Speed Building",
+		Lines: []string{
+			"the the the and and and for for for",
+			"that that with with this this from from",
+			"they have been here for quite some time",
+			"she will write the report before Friday",
+			"we should be able to finish this today",
+			"please make sure all the files are saved",
+			"the quick brown fox ran across the field",
+			"it was a dark and stormy night in London",
+			"he walked slowly down the empty corridor",
+			"the meeting has been moved to next Monday",
+			"I think we need to discuss this further",
+			"can you please send me the updated files",
+			"the project deadline is approaching fast",
+			"remember to back up your work regularly",
+			"good typing speed comes from daily practice",
+			"focus on accuracy first then build speed",
+		},
+	},
+	{
+		Name: "Lesson 11 — Programming",
 		Lines: []string{
 			"func main() {",
 			`    fmt.Println("Hello, World!")`,
@@ -310,7 +443,42 @@ var lessons = []Lesson{
 			"    }",
 			"    if err != nil {",
 			`        return fmt.Errorf("fail: %w", err)`,
+			"    }",
 			"}",
+			"def fibonacci(n):",
+			"    if n <= 1: return n",
+			"    return fibonacci(n-1) + fibonacci(n-2)",
+			"class Node { int val; Node next; }",
+			"SELECT * FROM users WHERE age > 18;",
+			"const arr = [1, 2, 3].map(x => x * 2);",
+			"git commit -m \"fix: resolve null pointer\"",
+			"docker run -p 8080:80 --name web nginx",
+			"ssh user@server -i ~/.ssh/id_rsa -p 22",
+			"chmod 755 script.sh && ./script.sh",
+			"grep -rn \"TODO\" src/ | wc -l",
+			"curl -X POST https://api.example.com/v1/data",
+			"export PATH=$HOME/bin:$PATH",
+		},
+	},
+	{
+		Name: "Lesson 12 — Advanced Mixed",
+		Lines: []string{
+			"The CPU executes 3.5 billion cycles/second.",
+			"TCP/IP uses ports 80 (HTTP) and 443 (HTTPS).",
+			"RAM: 16GB DDR4 @ 3200MHz; SSD: 512GB NVMe",
+			"O(n log n) is better than O(n^2) for sorting.",
+			"127.0.0.1 localhost; ::1 ipv6-localhost",
+			"regex: ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-z]+$",
+			"Base64: SGVsbG8gV29ybGQ= decodes to Hello World",
+			"JSON: {\"name\": \"Alice\", \"age\": 30, \"active\": true}",
+			"$ find . -name '*.go' -exec grep 'func' {} +",
+			"if (x != null && x.length > 0) { process(x); }",
+			"public static void main(String[] args) throws Exception {",
+			"std::vector<int> v = {1, 2, 3, 4, 5};",
+			"SELECT COUNT(*) AS total FROM orders WHERE status = 'paid';",
+			"CREATE TABLE users (id INT PRIMARY KEY, name VARCHAR(255));",
+			"const result = await fetch('/api/data').then(r => r.json());",
+			"fn main() -> Result<(), Box<dyn Error>> { Ok(()) }",
 		},
 	},
 }
@@ -459,8 +627,12 @@ func (s *Session) totalStats() Stats {
 // Rendering
 // ════════════════════════════════════════════════════════════════════
 
-func renderMenu(sel int) {
-	cls()
+func renderMenu(sel int, first bool) {
+	if first {
+		cls()
+	} else {
+		home()
+	}
 	nItems := len(lessons) + 1 // +1 for Space Invaders
 	var b strings.Builder
 	b.WriteString(hTop() + "\n")
@@ -499,8 +671,12 @@ func renderMenu(sel int) {
 	emit(padFrame(b.String()))
 }
 
-func renderTyping(s *Session) {
-	cls()
+func renderTyping(s *Session, first bool) {
+	if first {
+		cls()
+	} else {
+		home()
+	}
 	el := s.elapsed()
 	mins := int(el.Minutes())
 	secs := int(el.Seconds()) % 60
@@ -582,7 +758,7 @@ func renderTyping(s *Session) {
 }
 
 func renderLineComplete(s *Session, st Stats) {
-	cls()
+	cls() // only called once per line transition, no flicker
 	var b strings.Builder
 	b.WriteString(hTop() + "\n")
 	b.WriteString(hBlank() + "\n")
@@ -608,7 +784,7 @@ func renderLineComplete(s *Session, st Stats) {
 }
 
 func renderResults(s *Session) {
-	cls()
+	cls() // only called once, no flicker
 	ts := s.totalStats()
 
 	// grade
@@ -1050,7 +1226,7 @@ func run() error {
 	state := stMenu
 	var sess *Session
 
-	renderMenu(sel)
+	renderMenu(sel, true)
 
 	for {
 		k := <-keys
@@ -1070,12 +1246,12 @@ func run() error {
 				if sel > 0 {
 					sel--
 				}
-				renderMenu(sel)
+				renderMenu(sel, false)
 			case evDown:
 				if sel < nMenu-1 {
 					sel++
 				}
-				renderMenu(sel)
+				renderMenu(sel, false)
 			case evEnter:
 				if sel == len(lessons) {
 					// Space Invaders — runs its own loop
@@ -1087,12 +1263,12 @@ func run() error {
 						return nil
 					default: // "menu"
 						state = stMenu
-						renderMenu(sel)
+						renderMenu(sel, true)
 					}
 				} else {
 					sess = newSession(&lessons[sel])
 					state = stTyping
-					renderTyping(sess)
+					renderTyping(sess, true)
 				}
 			case evChar:
 				switch k.ch {
@@ -1103,7 +1279,7 @@ func run() error {
 				default:
 					if k.ch >= '1' && k.ch <= rune('0'+nMenu) {
 						sel = int(k.ch - '1')
-						renderMenu(sel)
+						renderMenu(sel, false)
 					}
 				}
 			case evEscape:
@@ -1117,10 +1293,10 @@ func run() error {
 			switch k.kind {
 			case evEscape:
 				state = stMenu
-				renderMenu(sel)
+				renderMenu(sel, true)
 			case evBackspace:
 				sess.backspace()
-				renderTyping(sess)
+				renderTyping(sess, false)
 			case evChar:
 				sess.addRune(k.ch)
 				if sess.lineFinished() {
@@ -1128,7 +1304,7 @@ func run() error {
 					state = stLineEnd
 					renderLineComplete(sess, st)
 				} else {
-					renderTyping(sess)
+					renderTyping(sess, false)
 				}
 			}
 
@@ -1144,7 +1320,7 @@ func run() error {
 			} else {
 				sess.advanceLine()
 				state = stTyping
-				renderTyping(sess)
+				renderTyping(sess, true)
 			}
 
 		// ── Results ───────────────────────────────────────
@@ -1155,10 +1331,10 @@ func run() error {
 				case 'r', 'R':
 					sess = newSession(sess.lesson)
 					state = stTyping
-					renderTyping(sess)
+					renderTyping(sess, true)
 				case 'm', 'M':
 					state = stMenu
-					renderMenu(sel)
+					renderMenu(sel, true)
 				case 'q', 'Q':
 					cls()
 					emit("Goodbye!\n")
@@ -1166,7 +1342,7 @@ func run() error {
 				}
 			case evEscape:
 				state = stMenu
-				renderMenu(sel)
+				renderMenu(sel, true)
 			}
 		}
 	}
