@@ -16,8 +16,28 @@ import (
 // ════════════════════════════════════════════════════════════════════
 
 func emit(s string) {
-	s = strings.ReplaceAll(s, "\n", "\r\n")
-	os.Stdout.WriteString(s)
+	// Compute left margin to horizontally center boxW content
+	tw, _, _ := term.GetSize(int(os.Stdout.Fd()))
+	if tw <= 0 {
+		tw = 80
+	}
+	margin := (tw - boxW) / 2
+	if margin < 0 {
+		margin = 0
+	}
+	pad := TTBg + strings.Repeat(" ", margin)
+	lines := strings.Split(s, "\n")
+	var out strings.Builder
+	for i, line := range lines {
+		if i > 0 {
+			out.WriteString("\r\n")
+		}
+		if line != "" {
+			out.WriteString(pad)
+			out.WriteString(line)
+		}
+	}
+	os.Stdout.WriteString(out.String())
 }
 
 func emitf(f string, a ...any) { emit(fmt.Sprintf(f, a...)) }
@@ -31,7 +51,12 @@ func cls() {
 	for i := 0; i < h; i++ {
 		os.Stdout.WriteString(fmt.Sprintf("\033[%d;1H"+TTBg+strings.Repeat(" ", w), i+1))
 	}
-	os.Stdout.WriteString("\033[H")
+	// Vertically center: move cursor to top margin
+	topMargin := (h - 25) / 2 // approximate 25 lines of content
+	if topMargin < 0 {
+		topMargin = 0
+	}
+	os.Stdout.WriteString(fmt.Sprintf("\033[%d;1H", topMargin+1))
 }
 func bell()    { os.Stdout.WriteString("\a") }
 func hideCur() { os.Stdout.WriteString("\033[?25l") }
@@ -77,7 +102,8 @@ const (
 // Box-drawing helpers (double-line Unicode frame)
 // ════════════════════════════════════════════════════════════════════
 
-const boxW = 72
+const boxW = 80
+const boxH = 25
 
 func hTop() string { return TTBg + TTBorder + "╔" + strings.Repeat("═", boxW-2) + "╗" + RST }
 func hMid() string { return TTBg + TTBorder + "╠" + strings.Repeat("═", boxW-2) + "╣" + RST }
@@ -106,6 +132,19 @@ func hCenter(s string) string {
 	left := (inner - sl) / 2
 	right := inner - sl - left
 	return TTBg + TTBorder + "║ " + TTFg + strings.Repeat(" ", left) + s + strings.Repeat(" ", right) + TTBorder + " ║" + RST
+}
+
+// padFrame ensures the frame content is exactly boxH lines.
+// It inserts hBlank() lines before the last line (hBot) as needed.
+func padFrame(s string) string {
+	lines := strings.Split(strings.TrimRight(s, "\n"), "\n")
+	for len(lines) < boxH {
+		// Insert blank line before the last line (hBot)
+		last := lines[len(lines)-1]
+		lines[len(lines)-1] = hBlank()
+		lines = append(lines, last)
+	}
+	return strings.Join(lines, "\n") + "\n"
 }
 
 // vLen returns the visible display width of s in terminal columns,
@@ -443,7 +482,7 @@ func renderMenu(sel int) {
 	b.WriteString(hRow(TTDim+"Up/Down Select │ Enter Start │ Q Quit"+RST+TTBg) + "\n")
 	b.WriteString(hBot() + "\n")
 	_ = nItems
-	emit(b.String())
+	emit(padFrame(b.String()))
 }
 
 func renderTyping(s *Session) {
@@ -525,7 +564,7 @@ func renderTyping(s *Session) {
 	b.WriteString(hMid() + "\n")
 	b.WriteString(hRow(TTDim+"Backspace=Delete │ ESC=Menu │ Ctrl-C=Quit"+RST+TTBg) + "\n")
 	b.WriteString(hBot() + "\n")
-	emit(b.String())
+	emit(padFrame(b.String()))
 }
 
 func renderLineComplete(s *Session, st Stats) {
@@ -551,7 +590,7 @@ func renderLineComplete(s *Session, st Stats) {
 		b.WriteString(hRow(TTDim+"Press any key for next line..."+RST+TTBg) + "\n")
 	}
 	b.WriteString(hBot() + "\n")
-	emit(b.String())
+	emit(padFrame(b.String()))
 }
 
 func renderResults(s *Session) {
@@ -598,7 +637,7 @@ func renderResults(s *Session) {
 	b.WriteString(hMid() + "\n")
 	b.WriteString(hRow(TTDim+"R=Retry │ M=Menu │ Q=Quit"+RST+TTBg) + "\n")
 	b.WriteString(hBot() + "\n")
-	emit(b.String())
+	emit(padFrame(b.String()))
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -606,8 +645,8 @@ func renderResults(s *Session) {
 // ════════════════════════════════════════════════════════════════════
 
 const (
-	siFieldW = 60 // play field width
-	siFieldH = 18 // play field height (rows aliens can occupy)
+	siFieldW = 76 // play field width (boxW - 4)
+	siFieldH = 14 // play field height (rows aliens can occupy)
 )
 
 // Invader is a single falling alien with a letter on it.
@@ -776,9 +815,12 @@ func renderSpaceGame(g *SpaceGame) {
 				row.WriteRune(ch)
 				row.WriteString(RST + TTBg)
 			} else {
-				// Starfield: occasional dim dots
-				if (r*siFieldW+c)%37 == 0 {
-					row.WriteString(DIM + "·" + RST + TTBg)
+				// Starfield: scattered dim dots using non-linear hash
+				h := ((r*r*3 + c*c*7 + r*c*13 + r*17 + c*31) ^ (r * 57) ^ (c * 93)) % 61
+				if h == 0 {
+					row.WriteString(DIM + "." + RST + TTBg)
+				} else if h == 3 {
+					row.WriteString(DIM + "+" + RST + TTBg)
 				} else {
 					row.WriteRune(' ')
 				}
@@ -805,7 +847,7 @@ func renderSpaceGame(g *SpaceGame) {
 	if cannonPad < 0 {
 		cannonPad = 0
 	}
-	cannon := strings.Repeat(" ", siFieldW/2-1) + FgCyn + BOLD + "▲" + RST + TTBg + strings.Repeat(" ", siFieldW/2)
+	cannon := strings.Repeat(" ", siFieldW/2-1) + FgCyn + BOLD + "^" + RST + TTBg + strings.Repeat(" ", siFieldW-siFieldW/2)
 	b.WriteString(TTBg + TTBorder + "║ " + TTFg +
 		strings.Repeat(" ", cannonPad) + cannon +
 		strings.Repeat(" ", (boxW-4-siFieldW)-cannonPad) +
@@ -823,7 +865,7 @@ func renderSpaceGame(g *SpaceGame) {
 		b.WriteString(hRow(TTDim+"Type letters to shoot aliens │ ESC=Menu"+RST+TTBg) + "\n")
 	}
 	b.WriteString(hBot() + "\n")
-	emit(b.String())
+	emit(padFrame(b.String()))
 }
 
 // ════════════════════════════════════════════════════════════════════
