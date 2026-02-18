@@ -62,6 +62,20 @@ func bell()    { os.Stdout.WriteString("\a") }
 func hideCur() { os.Stdout.WriteString("\033[?25l") }
 func showCur() { os.Stdout.WriteString("\033[?25h") }
 
+// home repositions the cursor to the vertically-centered start
+// without clearing the screen, for flicker-free redraws.
+func home() {
+	_, h, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		h = 25
+	}
+	topMargin := (h - boxH) / 2
+	if topMargin < 0 {
+		topMargin = 0
+	}
+	os.Stdout.WriteString(fmt.Sprintf("\033[%d;1H", topMargin+1))
+}
+
 // ════════════════════════════════════════════════════════════════════
 // ANSI color constants
 // ════════════════════════════════════════════════════════════════════
@@ -757,8 +771,12 @@ func (g *SpaceGame) tryShoot(ch rune) bool {
 	return false
 }
 
-func renderSpaceGame(g *SpaceGame) {
-	cls()
+func renderSpaceGame(g *SpaceGame, firstFrame bool) {
+	if firstFrame {
+		cls()
+	} else {
+		home()
+	}
 	var b strings.Builder
 
 	b.WriteString(hTop() + "\n")
@@ -955,7 +973,7 @@ func keyChan() <-chan keyEvent {
 func runSpaceInvaders(keys <-chan keyEvent) string {
 	game := newSpaceGame()
 	game.lastRender = time.Now()
-	renderSpaceGame(game)
+	renderSpaceGame(game, true)
 
 	ticker := time.NewTicker(game.tickRate)
 	defer ticker.Stop()
@@ -968,8 +986,7 @@ func runSpaceInvaders(keys <-chan keyEvent) string {
 			mu.Lock()
 			if !game.gameOver {
 				game.update()
-				renderSpaceGame(game)
-				// adjust ticker if speed changed
+				renderSpaceGame(game, false)
 			}
 			mu.Unlock()
 
@@ -990,7 +1007,7 @@ func runSpaceInvaders(keys <-chan keyEvent) string {
 					case 'r', 'R':
 						game = newSpaceGame()
 						game.lastRender = time.Now()
-						renderSpaceGame(game)
+						renderSpaceGame(game, true)
 					case 'm', 'M':
 						mu.Unlock()
 						return "menu"
@@ -1006,7 +1023,7 @@ func runSpaceInvaders(keys <-chan keyEvent) string {
 						ch = ch - 'A' + 'a'
 					}
 					if game.tryShoot(ch) {
-						renderSpaceGame(game)
+						renderSpaceGame(game, false)
 					}
 				}
 			}
